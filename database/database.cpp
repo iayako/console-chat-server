@@ -62,12 +62,80 @@ void Database::addUser(const char *name, const char *password) {
     sqlite3_finalize(stmt);
 }
 
+void Database::addMessage(const int sender_id, const int receiver_id, const int chat_id, const char *message) {
+    const char *sql = "INSERT INTO MESSAGES (sender_id, receiver_id, chat_id, message) VALUES (?, ?, ?, ?)";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "SQL preparation error: " << sqlite3_errmsg(db_) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, sender_id);
+    sqlite3_bind_int(stmt, 2, receiver_id);
+    sqlite3_bind_int(stmt, 3, chat_id);
+    sqlite3_bind_text(stmt, 4, message, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Error executing request: " << sqlite3_errmsg(db_) << std::endl;
+    } else {
+        std::cout << "Message sended!" << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+void Database::addChat(const char *name) {
+    const char *sql = "INSERT INTO CHATS (name) VALUES (?)";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "SQL preparation error: " << sqlite3_errmsg(db_) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Error executing request: " << sqlite3_errmsg(db_) << std::endl;
+    } else {
+        std::cout << "Chat created!" << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+void Database::addChatMember(const int chat_id, const int user_id) {
+    const char *sql = "INSERT INTO CHAT_MEMBERS (chat_id, user_id) VALUES (?, ?)";
+    sqlite3_stmt *stmt;
+
+    if (sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "SQL preparation error: " << sqlite3_errmsg(db_) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, chat_id);
+    sqlite3_bind_int(stmt, 2, user_id);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Error executing request: " << sqlite3_errmsg(db_) << std::endl;
+    } else {
+        std::cout << "Chat member added!" << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+}
 
 int main() {
     try {
         Database db("test.db");
 //        db.executeDbConfig("database/database.cfg");
-        db.addUser("Vanya", "Pupkin");
+//        db.addUser("Vanya", "Pupkin");
+//        db.addUser("Polya", "Ivanova");
+//        db.addMessage(1, 2, 1, "hi");
+//        db.addChat("Vanya-Polya");
+//        db.addChatMember(1, 1);
+//        db.addChatMember(1, 2);
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
